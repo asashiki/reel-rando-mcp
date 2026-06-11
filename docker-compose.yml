@@ -1,0 +1,10 @@
+services:
+  reel-rando-mcp:
+    build: .
+    container_name: reel-rando-mcp
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - PORT=3000
+    ports:
+      - "127.0.0.1:3000:3000"
