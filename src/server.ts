@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { loadConfig } from "./config.js";
+import { setupOAuth } from "./oauth.js";
 import { createReelServer } from "./mcp.js";
 
 const config = loadConfig();
@@ -23,6 +24,8 @@ async function main() {
   );
   app.use(express.json({ limit: "1mb" }));
 
+  const bearerAuth = setupOAuth(app, config.publicBaseUrl, "reel-rando");
+
   app.get("/healthz", (_req, res) => {
     res.json({
       ok: true,
@@ -33,7 +36,7 @@ async function main() {
     });
   });
 
-  app.all(mcpPaths, async (req, res) => {
+  app.all(mcpPaths, bearerAuth, async (req, res) => {
     const origin = req.headers.origin;
     if (origin && config.allowedOrigins.length > 0 && !config.allowedOrigins.includes(origin)) {
       res.status(403).json({ error: "Origin not allowed" });
