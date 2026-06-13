@@ -1,3 +1,19 @@
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/banner-dark.svg">
+  <img alt="reel-rando-mcp — spin away decision paralysis" src=".github/assets/banner-light.svg" width="100%">
+</picture>
+
+[![CI](https://github.com/asashiki/reel-rando-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/asashiki/reel-rando-mcp/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-e96ba8.svg)](LICENSE)
+![Node](https://img.shields.io/badge/node-%E2%89%A5%2020-8b8bef)
+![MCP](https://img.shields.io/badge/MCP-stdio%20%2B%20Streamable%20HTTP-3a3340)
+
+**English** · [简体中文](README.zh-CN.md)
+
+</div>
+
 # reel-rando-mcp
 
 An MCP server that turns "just pick one for me" into a playable moment. Instead of the AI listing options and leaving the choice to you, it drops a **slot machine**, **spinning wheel**, or **card draw** widget right into the chat — you click, fate decides.
