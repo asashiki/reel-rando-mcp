@@ -78,7 +78,7 @@ npm run start:stdio
 1. `cp .env.example .env`, set `PUBLIC_BASE_URL` (and `ALLOWED_ORIGINS`).
 2. `docker compose up -d`.
 3. Reverse-proxy `https://your-domain/mcp/reel` → container `:3000`.
-4. Add a custom connector in claude.ai with that URL. OAuth fields stay empty.
+4. Add a custom connector in claude.ai with that URL. If `MCP_AUTH_PASSWORD` is set, the connector will use OAuth dynamic client registration and show the password authorization page.
 
 The widget loads zero external resources (no fonts, no images, no API calls), so the CSP allowlist is empty and there is nothing else to proxy.
 
@@ -92,6 +92,11 @@ The widget loads zero external resources (no fonts, no images, no API calls), so
 | `PORT` | `3000` | HTTP port. |
 | `MCP_HTTP_PATH` | `/mcp/reel` | Streamable HTTP MCP route. |
 | `ALLOWED_ORIGINS` | PUBLIC_BASE_URL origin | CORS allowlist, comma separated. |
+| `MCP_AUTH_PASSWORD` | _(empty)_ | Optional password gate for remote connectors. Leave empty to disable auth. |
+
+## OAuth password auth
+
+Set `MCP_AUTH_PASSWORD` to enable a minimal OAuth Authorization Code flow for remote connectors. The server exposes OAuth discovery and dynamic client registration, so clients that support automatic registration can connect without a manually configured Client ID. During connection, enter the configured password on the authorization page.
 
 ## Development
 
