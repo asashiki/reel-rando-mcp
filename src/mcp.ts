@@ -106,7 +106,8 @@ export function createReelServer(_config: AppConfig): McpServer {
               `The ${payload.mode} widget is now showing in the chat with ${cleaned.length} options. ` +
               `Hidden outcome (draw ${payload.drawId}): "${payload.resultLabel}". ` +
               "Do not reveal it — just invite the user to spin/draw with one short, fun sentence."
-          }
+          },
+          { type: "text", text: JSON.stringify(payload) }
         ],
         structuredContent: payload as unknown as Record<string, unknown>,
         _meta: { ui: { resourceUri: REEL_WIDGET_URI } }
