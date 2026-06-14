@@ -17,9 +17,21 @@ export interface SpinResult {
   createdAt: string;
 }
 
+const WIDGET_DOMAIN = "https://reel-rando.asashiki.com";
+const spinResultSchema = {
+  title: z.string(),
+  options: z.array(z.string()),
+  mode: z.enum(MODES),
+  resultIndex: z.number(),
+  resultLabel: z.string(),
+  drawId: z.string(),
+  createdAt: z.string()
+};
+
 /** The widget loads no external resources, so the CSP origin lists stay empty. */
 const CSP_META = {
-  ui: { csp: { resourceDomains: [], connectDomains: [] } },
+  ui: { domain: WIDGET_DOMAIN, csp: { resourceDomains: [], connectDomains: [] } },
+  "openai/widgetDomain": WIDGET_DOMAIN,
   "openai/widgetCSP": { resource_domains: [], connect_domains: [] }
 };
 
@@ -69,6 +81,7 @@ export function createReelServer(_config: AppConfig): McpServer {
           .describe("The candidate choices, short labels work best."),
         mode: z.enum(MODES).optional().describe("Interaction style: slot | wheel | cards. Default slot.")
       },
+      outputSchema: spinResultSchema,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
