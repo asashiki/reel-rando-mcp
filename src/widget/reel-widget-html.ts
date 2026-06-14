@@ -3,7 +3,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /** Bump the version suffix whenever the widget changes — hosts cache ui:// resources by URI. */
-export const REEL_WIDGET_URI = "ui://reel-rando/widget-v5.html";
+export const REEL_WIDGET_URI = "ui://reel-rando/widget-v6.html";
 export const REEL_WIDGET_MIME = "text/html;profile=mcp-app";
 
 /* Asashiki Design · 樱羽 Sakura tokens (inlined), light + dark via prefers-color-scheme. */

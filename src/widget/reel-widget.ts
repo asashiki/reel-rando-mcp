@@ -66,6 +66,21 @@ function confetti(host: HTMLElement) {
   }
 }
 
+function onceWithTimeout(done: () => void, timeoutMs: number): () => void {
+  let called = false;
+  const timer = window.setTimeout(() => {
+    if (called) return;
+    called = true;
+    done();
+  }, timeoutMs);
+  return () => {
+    if (called) return;
+    called = true;
+    window.clearTimeout(timer);
+    done();
+  };
+}
+
 /* ---------------- SLOT ---------------- */
 const ITEM_H = 42;
 
@@ -111,14 +126,15 @@ function renderSlot(stage: HTMLElement, data: SpinData, onDone: () => void) {
     track.style.transition = "transform 3s cubic-bezier(.12,.8,.18,1)";
     track.style.transform = `translateY(${offset}px)`;
 
+    const finish = onceWithTimeout(() => {
+      const winEl = track.children[targetIdx] as HTMLElement | undefined;
+      if (winEl) winEl.classList.add("win");
+      confetti(frame);
+      onDone();
+    }, 3300);
     track.addEventListener(
       "transitionend",
-      () => {
-        const winEl = track.children[targetIdx] as HTMLElement | undefined;
-        if (winEl) winEl.classList.add("win");
-        confetti(frame);
-        onDone();
-      },
+      finish,
       { once: true }
     );
   });
@@ -212,17 +228,18 @@ function renderWheel(stage: HTMLElement, data: SpinData, onDone: () => void) {
     const target = 5 * 360 + (-90 - mid) + jitter;
     rot.style.transition = "transform 3.4s cubic-bezier(.1,.72,.14,1)";
     rot.style.transform = `rotate(${target}deg)`;
+    const finish = onceWithTimeout(() => {
+      const winSector = sectors[data.resultIndex];
+      if (winSector) {
+        winSector.setAttribute("fill", "var(--accent)");
+        winSector.setAttribute("opacity", "0.85");
+      }
+      confetti(box);
+      onDone();
+    }, 3700);
     rot.addEventListener(
       "transitionend",
-      () => {
-        const winSector = sectors[data.resultIndex];
-        if (winSector) {
-          winSector.setAttribute("fill", "var(--accent)");
-          winSector.setAttribute("opacity", "0.85");
-        }
-        confetti(box);
-        onDone();
-      },
+      finish,
       { once: true }
     );
   });
@@ -289,6 +306,7 @@ function renderCards(stage: HTMLElement, data: SpinData, onDone: () => void) {
 let rendered = false;
 
 function render(data: SpinData, platform: "chatgpt" | "claude") {
+  if (rendered) return;
   rendered = true;
   const root = document.getElementById("root");
   if (!root) return;
