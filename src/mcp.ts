@@ -30,7 +30,7 @@ const spinResultSchema = {
 
 /** The widget loads no external resources, so the CSP origin lists stay empty. */
 const CSP_META = {
-  ui: { domain: WIDGET_DOMAIN, csp: { resourceDomains: [], connectDomains: [] } },
+  ui: { csp: { resourceDomains: [], connectDomains: [] } },
   "openai/widgetDomain": WIDGET_DOMAIN,
   "openai/widgetCSP": { resource_domains: [], connect_domains: [] }
 };
