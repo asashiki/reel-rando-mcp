@@ -16,15 +16,17 @@
 
 # reel-rando-mcp
 
-An MCP server that turns "just pick one for me" into a playable moment. Instead of the AI listing options and leaving the choice to you, it drops a **slot machine**, **spinning wheel**, or **card draw** widget right into the chat — you click, fate decides.
+**Say “just pick one for me,” then pull a lever, spin a wheel, or draw a card inside the chat.**
+
+The AI supplies the options; you make the final choice into a small playable moment instead of staring at another list.
 
 > 「中午吃什么?」 → AI puts 麻辣烫 / 寿司 / 沙县 / 汉堡 into a slot machine → you pull the lever → 🎰 寿司. Decision paralysis solved, with style.
 
 ## How it works
 
-- The AI calls **`spin_picker`** with 2–12 options (plus optional `title` and `mode`).
-- The server decides the outcome **server-side** (`crypto.randomInt`) and returns it in `structuredContent`, together with instructions telling the AI **not to spoil the result** until you've spun.
-- The chat renders a `ui://` MCP Apps widget (claude.ai & ChatGPT web): you interact, the animation lands on the predetermined result, both you and the AI agree on what fate chose.
+1. The AI puts 2–12 options into a slot machine, wheel, or card draw.
+2. You trigger the animation yourself inside the chat.
+3. The result is revealed to you and the AI at the same time.
 
 ## Modes
 
@@ -49,6 +51,8 @@ All three share the Asashiki sakura design language (light/dark aware) and a RES
 ```
 
 Returns `structuredContent`: `{ title, options, mode, resultIndex, resultLabel, drawId, createdAt }`.
+
+The result is generated server-side with `crypto.randomInt`; the widget only reveals it through the animation. A fresh tool call creates a new draw, so the AI cannot silently reroll or spoil the result before you play.
 
 ## Quick start
 
