@@ -17,7 +17,6 @@ export interface SpinResult {
   createdAt: string;
 }
 
-const WIDGET_DOMAIN = "https://reel-rando.asashiki.com";
 const spinResultSchema = {
   title: z.string(),
   options: z.array(z.string()),
@@ -31,7 +30,7 @@ const spinResultSchema = {
 /** The widget loads no external resources, so the CSP origin lists stay empty. */
 const CSP_META = {
   ui: { csp: { resourceDomains: [], connectDomains: [] } },
-  "openai/widgetDomain": WIDGET_DOMAIN,
+
   "openai/widgetCSP": { resource_domains: [], connect_domains: [] }
 };
 
@@ -66,7 +65,7 @@ export function createReelServer(_config: AppConfig): McpServer {
         "Pick a mode that fits: 'slot' (default, any count), 'wheel' (nice for 3-8), 'cards' (nice for 2-6). " +
         "The outcome is decided server-side and included in the tool result FOR YOUR REFERENCE ONLY — " +
         "after calling, just invite the user to spin/draw in one short sentence. Do NOT reveal or hint at the result " +
-        "until the user has interacted with the widget or explicitly asks. " +
+        "until the user has interacted with the widget or explicitly asks. If this host cannot render MCP Apps, report resultLabel directly instead of asking the user to click an invisible widget. " +
         "If the user wants a re-roll, call this tool again with the same options.",
       inputSchema: {
         title: z
@@ -116,9 +115,9 @@ export function createReelServer(_config: AppConfig): McpServer {
           {
             type: "text",
             text:
-              `The ${payload.mode} widget is now showing in the chat with ${cleaned.length} options. ` +
+              `Random choice prepared with ${cleaned.length} options; widget display is not verified. ` +
               `Hidden outcome (draw ${payload.drawId}): "${payload.resultLabel}". ` +
-              "Do not reveal it — just invite the user to spin/draw with one short, fun sentence."
+              "With a supported widget, invite the user to spin/draw. Without widget support, state the selected result directly."
           },
           { type: "text", text: JSON.stringify(payload) }
         ],
