@@ -3,7 +3,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /** Bump the version suffix whenever the widget changes — hosts cache ui:// resources by URI. */
-export const REEL_WIDGET_URI = "ui://reel-rando/widget-v6.html";
+export const REEL_WIDGET_URI = "ui://reel-rando/widget-v7.html";
 export const REEL_WIDGET_MIME = "text/html;profile=mcp-app";
 
 /* Asashiki Design · 樱羽 Sakura tokens (inlined), light + dark via prefers-color-scheme. */
@@ -21,8 +21,7 @@ const CSS = `
     --mono:ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Consolas,monospace;
     color-scheme: light dark;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
       --bg:#16131c; --bg-tint:#372240; --bg-tint-2:#282b58;
       --surface:#201b2a; --surface-raised:#2c2439;
       --border:#3e3149; --border-strong:#564662;
@@ -31,6 +30,15 @@ const CSS = `
       --accent-2:#a9a9fa; --accent-2-soft:#30305f; --on-accent:#2a1320;
       --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.35);
     }
+  }
+  :root[data-theme="dark"] {
+      --bg:#16131c; --bg-tint:#372240; --bg-tint-2:#282b58;
+      --surface:#201b2a; --surface-raised:#2c2439;
+      --border:#3e3149; --border-strong:#564662;
+      --text:#f1eaf4; --text-2:#b3a2ba; --text-3:#7d6e86;
+      --accent:#f48fc4; --accent-soft:#4f2745;
+      --accent-2:#a9a9fa; --accent-2-soft:#30305f; --on-accent:#2a1320;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.35);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:transparent; font-family:var(--font); color:var(--text);

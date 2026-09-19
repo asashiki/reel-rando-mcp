@@ -1,4 +1,4 @@
-import { App } from "@modelcontextprotocol/ext-apps";
+import { connectWidget } from "./host-bridge.js";
 
 type SpinMode = "slot" | "wheel" | "cards";
 
@@ -20,7 +20,7 @@ declare global {
 function coerce(data: unknown): SpinData | null {
   if (!data || typeof data !== "object") return null;
   const d = data as Record<string, unknown>;
-  if (!Array.isArray(d.options) || typeof d.resultIndex !== "number") return null;
+  if (!Array.isArray(d.options) || typeof d.resultIndex !== "number" || !Number.isFinite(d.resultIndex)) return null;
   const options = d.options.filter((o): o is string => typeof o === "string");
   if (options.length < 2) return null;
   const idx = Math.min(Math.max(0, Math.floor(d.resultIndex)), options.length - 1);
@@ -49,6 +49,10 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
   return node;
 }
 
+let activeTimers: ReturnType<typeof setTimeout>[] = [];
+function later(fn: () => void, ms: number) {
+  const timer = setTimeout(fn, ms); activeTimers.push(timer); return timer;
+}
 function confetti(host: HTMLElement) {
   const colors = ["#e96ba8", "#8b8bef", "#fdd9ec", "#e1e1fe"];
   const rect = host.getBoundingClientRect();
@@ -62,13 +66,13 @@ function confetti(host: HTMLElement) {
     c.style.setProperty("--dy", `${Math.sin(angle) * dist - 18}px`);
     c.style.setProperty("--c", colors[i % colors.length] ?? "#e96ba8");
     host.appendChild(c);
-    setTimeout(() => c.remove(), 950);
+    later(() => c.remove(), 950);
   }
 }
 
 function onceWithTimeout(done: () => void, timeoutMs: number): () => void {
   let called = false;
-  const timer = window.setTimeout(() => {
+  const timer = later(() => {
     if (called) return;
     called = true;
     done();
@@ -288,9 +292,9 @@ function renderCards(stage: HTMLElement, data: SpinData, onDone: () => void) {
         const frontFace = sibling.querySelector(".front") as HTMLElement | null;
         if (frontFace) frontFace.textContent = others[k] ?? "";
         k += 1;
-        setTimeout(() => sibling.classList.add("flip", "dim"), 420 + k * 110);
+        later(() => sibling.classList.add("flip", "dim"), 420 + k * 110);
       });
-      setTimeout(() => {
+      later(() => {
         confetti(wrap);
         onDone();
       }, 650);
@@ -304,9 +308,11 @@ function renderCards(stage: HTMLElement, data: SpinData, onDone: () => void) {
 
 /* ---------------- SHELL ---------------- */
 let rendered = false;
+let cleanupCurrent = () => {};
 
 function render(data: SpinData, platform: "chatgpt" | "claude") {
-  if (rendered) return;
+  let active = true;
+  cleanupCurrent = () => { active = false; activeTimers.forEach(clearTimeout); activeTimers = []; };
   rendered = true;
   const root = document.getElementById("root");
   if (!root) return;
@@ -332,6 +338,7 @@ function render(data: SpinData, platform: "chatgpt" | "claude") {
   if (data.drawId) result.appendChild(el("div", "res-id", `#${data.drawId}`));
 
   const onDone = () => {
+    if (!active) return;
     hint.textContent = "天意如此 ✿ 想重抽就让 AI 再转一次";
     result.classList.add("show");
   };
@@ -350,58 +357,9 @@ function showError(msg: string) {
   if (root) root.innerHTML = `<div class="err">${msg}</div>`;
 }
 
-function renderToolResult(params: { structuredContent?: unknown; content?: Array<{ type: string; text?: string }> }, platform: "chatgpt" | "claude") {
-  let data = coerce(params?.structuredContent);
-  if (!data && Array.isArray(params?.content)) {
-    for (const block of params.content) {
-      if (block.type === "text" && block.text) {
-        try { const p = JSON.parse(block.text); data = coerce(p); if (data) break; } catch { /* not json */ }
-      }
-    }
-  }
-  if (data) render(data, platform);
-}
-
-function tryChatGpt() {
-  if (!window.openai) return;
-  const apply = () => {
-    const data = coerce(window.openai?.toolOutput);
-    if (data) render(data, "chatgpt");
-  };
-  apply();
-  window.addEventListener("openai:set_globals", apply as EventListener);
-  window.addEventListener("message", (event) => {
-    if (event.source !== window.parent) return;
-    const message = event.data;
-    if (!message || message.jsonrpc !== "2.0") return;
-    if (message.method !== "ui/notifications/tool-result") return;
-    renderToolResult(message.params, "chatgpt");
-  }, { passive: true });
-}
-
-async function tryMcpApps() {
-  try {
-    const app = new App({ name: "reel-rando", version: "0.1.0" });
-    /* Register before connect() — host may send toolresult during/right after handshake */
-    app.addEventListener("toolresult", (params: { structuredContent?: unknown; content?: Array<{ type: string; text?: string }> }) => {
-      console.debug("[reel-rando] ontoolresult:", JSON.stringify(params)?.slice(0, 300));
-      renderToolResult(params, "claude");
-    });
-    await app.connect();
-  } catch (e) {
-    console.debug("[reel-rando] MCP Apps connect skipped:", e);
-  }
-}
-
 function boot() {
-  /* Run both bridges in parallel — rendered flag prevents double-render */
-  tryChatGpt();
-  void tryMcpApps();
-  setTimeout(() => showError("等待抽选数据..."), 4000);
+  connectWidget("reel-rando", coerce, render, () => cleanupCurrent());
+  setTimeout(() => showError("等待工具数据…"), 4000);
 }
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", boot);
-} else {
-  boot();
-}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+else boot();
